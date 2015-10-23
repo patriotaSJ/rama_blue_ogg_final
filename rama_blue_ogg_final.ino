@@ -4,7 +4,7 @@
 #include <SD.h>
 
 // define the pins used
-#define RESET 9      // VS1053 reset pin (output) //dudas //probando2
+#define RESET 9      // VS1053 reset pin (output) 
 #define CS 10        // VS1053 chip select pin (output)
 #define DCS 8        // VS1053 Data/command select pin (output)
 #define CARDCS A0     // Card chip select pin
@@ -207,4 +207,5 @@ void sendAndroidValues()
 }
 //----------------- fin bluetooth -------------------//
 
-
+//comentarios
+//vie 23/10 inicio de usar el github
