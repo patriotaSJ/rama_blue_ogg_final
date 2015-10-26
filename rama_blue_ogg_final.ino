@@ -12,7 +12,7 @@
 #define REC_BUTTON 7
 
 //ambiente bluetooth
-int led = 4; //led Rojo de prueba de conexión
+int led = 4; //led Rojo de prueba de conexiÃ³n
 String voltageValue[4] = {"result_LED","result_dht11","result_vs1053","result_almacenameinto"}; 
 char inbyte = 0; //Char para leer el led
 //fin ambiente bluetooth
@@ -66,53 +66,65 @@ void setup() {
 
 uint8_t isRecording = false;
 
-void loop() {  
-  if (!isRecording && !digitalRead(REC_BUTTON)) {
-    Serial.println("Begin recording");
-    voltageValue[1] = "Begin recording";
-    sendAndroidValues();                    // ****Begin recording***** //
-    isRecording = true;
-    
-    // Check if the file exists already
-    char filename[15];
-    strcpy(filename, "RECORD00.OGG");
-    for (uint8_t i = 0; i < 100; i++) {
-      filename[6] = '0' + i/10;
-      filename[7] = '0' + i%10;
-      // create if does not exist, do not open existing, write, sync after write
-      if (! SD.exists(filename)) {
-        break;
-      }
-    }
-    Serial.print("Recording to "); Serial.println(filename);
-    recording = SD.open(filename, FILE_WRITE);
-    if (! recording) {
-       Serial.println("Couldn't open file to record!");
-       while (1);
-    }
-    musicPlayer.startRecordOgg(true); // use microphone (for linein, pass in 'false')
-  }
-  if (isRecording)
-    saveRecordedData(isRecording);
-  if (isRecording && !digitalRead(REC_BUTTON)) {
-    Serial.println("End recording");
-    voltageValue[1] = "End recording";
-    sendAndroidValues();                    // ****End recording***** //
-    musicPlayer.stopRecordOgg();
-    isRecording = false;
-    // flush all the data!
-    saveRecordedData(isRecording);
-    // close it up
-    recording.close();
-    delay(1000);
-  }
 
-   //bluetooth
-  //when serial values have been received this will be true
-  if (Serial.available() > 0)
-  {
+
+
+
+void loop() {  
+
+ if (isRecording)
+        saveRecordedData(isRecording);
+  
+  //  COMIENZA LOOP ///
+  if (Serial.available() > 0){
     inbyte = Serial.read();
     Serial.println(inbyte);
+    
+    if (inbyte == '3'){
+      if (!isRecording) {
+        Serial.println("Begin recording");
+        voltageValue[1] = "Begin recording";
+        sendAndroidValues();                    // ****Begin recording***** //
+        isRecording = true;
+        
+        // Check if the file exists already
+        char filename[15];
+        strcpy(filename, "RECORD00.OGG");
+        for (uint8_t i = 0; i < 100; i++) {
+          filename[6] = '0' + i/10;
+          filename[7] = '0' + i%10;
+          // create if does not exist, do not open existing, write, sync after write
+          if (! SD.exists(filename)) {
+            break;
+          }
+        }
+        Serial.print("Recording to "); Serial.println(filename);
+        recording = SD.open(filename, FILE_WRITE);
+        if (! recording) {
+           Serial.println("Couldn't open file to record!");
+           while (1);
+        }
+        musicPlayer.startRecordOgg(true); // use microphone (for linein, pass in 'false')
+      }
+    } //fin if (inbyte == '3'){
+    
+     if (inbyte == '4'){
+      if (isRecording) {
+        Serial.println("End recording");
+        voltageValue[1] = "End recording";
+        sendAndroidValues();                    // ****End recording***** //
+        musicPlayer.stopRecordOgg();
+        isRecording = false;
+        // flush all the data!
+        saveRecordedData(isRecording);
+        // close it up
+        recording.close();
+        delay(1000);
+      }
+    }//fin   if (inbyte == '4'){
+    
+   //bluetooth
+  //when serial values have been received this will be true
     if (inbyte == '2')
     {
       digitalWrite(led, LOW); //LED off
@@ -123,9 +135,17 @@ void loop() {
       digitalWrite(led, HIGH); //LED on
       //voltageValue[0] = 1;
     }
-  }//fin looop
-  
+  }//fin (Serial.available() > 0){
 }//fin loop()
+
+
+
+
+
+// funciones //
+
+
+
 
 uint16_t saveRecordedData(boolean isrecord) {
   uint16_t written = 0;
@@ -195,13 +215,13 @@ uint16_t saveRecordedData(boolean isrecord) {
 //enviar valores del celular al arduino
 void sendAndroidValues()
  {
-  Serial.print('#'); //hay que poner # para el comienzo de los datos, así Android sabe que empieza el String de datos
+  Serial.print('#'); //hay que poner # para el comienzo de los datos, asÃ­ Android sabe que empieza el String de datos
   for(int k=0; k<4; k++)
   {
     Serial.print(voltageValue[k]);
-    Serial.print('@'); //separamos los datos con el +, así no es más fácil debuggear la información que enviamos
+    Serial.print('@'); //separamos los datos con el +, asÃ­ no es mÃ¡s fÃ¡cil debuggear la informaciÃ³n que enviamos
   }
- Serial.print('~'); //con esto damos a conocer la finalización del String de datos
+ Serial.print('~'); //con esto damos a conocer la finalizaciÃ³n del String de datos
  Serial.println();
  delay(10);        //agregamos este delay para eliminar tramisiones faltantes
 }
@@ -209,3 +229,4 @@ void sendAndroidValues()
 
 //comentarios
 //vie 23/10 inicio de usar el github
+
