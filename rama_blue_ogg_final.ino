@@ -25,30 +25,29 @@ uint8_t recording_buffer[RECBUFFSIZE];
 
 void setup() {
   Serial.begin(9600);
-  Serial.println("Adafruit VS1053 Ogg Recording Test");
+  //Serial.println("Adafruit VS1053 Ogg Recording Test");
   voltageValue[1]="Adafruit VS1053 Ogg Recording Test";
-  sendAndroidValues();                    // *****Adafruit VS1053 Ogg Recording Test**** //
+  sendAndroidValues();                      // *****Adafruit VS1053 Ogg Recording Test**** //
   
-  //bluetooth
-  pinMode(led, OUTPUT);
+  pinMode(led, OUTPUT);   //bluetooth
   digitalWrite(led, LOW);
 
   // vs1053
   // initialise the music player
   if (!musicPlayer.begin()) {
-    Serial.println("VS1053 not found");
+    voltageValue[1]="VS1053 no se sencontro";
+    sendAndroidValues();                    // *****  VS1053 not found  **** //
     while (1);  // don't do anything more
   }
 
-  musicPlayer.sineTest(0x44, 500);    // Make a tone to indicate VS1053 is working
+  musicPlayer.sineTest(0x44, 500);    // Hace un sonido que indica que el VS1053 funciona perfectamente
  
   if (!SD.begin(CARDCS)) {
-    Serial.println("SD failed, or not present");
+    voltageValue[1]="SD fallo o no esta presente";
+    sendAndroidValues();                    // *****  SD Fail or not present  **** //
     while (1);  // don't do anything more
   }
-  Serial.println("SD OK!");
   voltageValue[1]="SD OK!";
-  sendAndroidValues();                    // ******SD OK!!*** //
   
   // Set volume for left, right channels. lower numbers == louder volume!
   musicPlayer.setVolume(10,10);
@@ -59,13 +58,13 @@ void setup() {
   
   // load plugin from SD card! We'll use mono 44.1KHz, high quality
   if (! musicPlayer.prepareRecordOgg("v44k1q05.img")) {
-     Serial.println("Couldn't load plugin!");
+     voltageValue[1]="No se pudo cargar la imagen v44k1q05,img";
      while (1);    
   }
+  sendAndroidValues();                    // ***** SD OK! or no se pudo cargar la imagen v44k1q05**** //
 }
 
 uint8_t isRecording = false;
-
 
 
 
@@ -75,16 +74,31 @@ void loop() {
  if (isRecording)
         saveRecordedData(isRecording);
   
-  //  COMIENZA LOOP ///
+  //bluetooth
+  //when serial values have been received this will be true
+    
+    
+  
   if (Serial.available() > 0){
     inbyte = Serial.read();
-    Serial.println(inbyte);
+    //Serial.println(inbyte);
+
+    if (inbyte == '1'){
+      digitalWrite(led, HIGH); //LED on
+      voltageValue[0] = "1";
+    }
+    
+    if (inbyte == '2'){
+      digitalWrite(led, LOW); //LED off
+      voltageValue[0] = "0";
+    }
+    
     
     if (inbyte == '3'){
       if (!isRecording) {
-        Serial.println("Begin recording");
-        voltageValue[1] = "Begin recording";
-        sendAndroidValues();                    // ****Begin recording***** //
+        //Serial.println("Begin recording");
+        voltageValue[1] = "Comienzo de grabación";
+        sendAndroidValues();                    // ***** comienzo de grabación **** //
         isRecording = true;
         
         // Check if the file exists already
@@ -98,10 +112,11 @@ void loop() {
             break;
           }
         }
-        Serial.print("Recording to "); Serial.println(filename);
+        //Serial.print("Recording to "); Serial.println(filename);
         recording = SD.open(filename, FILE_WRITE);
         if (! recording) {
-           Serial.println("Couldn't open file to record!");
+           voltageValue[1] = "No se pudo abrir la sdcard. Error3";
+           sendAndroidValues();                    // ***** could not open, error 3 **** //
            while (1);
         }
         musicPlayer.startRecordOgg(true); // use microphone (for linein, pass in 'false')
@@ -110,9 +125,9 @@ void loop() {
     
      if (inbyte == '4'){
       if (isRecording) {
-        Serial.println("End recording");
-        voltageValue[1] = "End recording";
+        voltageValue[1] = "Fin de grabación";
         sendAndroidValues();                    // ****End recording***** //
+        
         musicPlayer.stopRecordOgg();
         isRecording = false;
         // flush all the data!
@@ -123,18 +138,7 @@ void loop() {
       }
     }//fin   if (inbyte == '4'){
     
-   //bluetooth
-  //when serial values have been received this will be true
-    if (inbyte == '2')
-    {
-      digitalWrite(led, LOW); //LED off
-      //voltageValue[0] = 0;
-    }
-    if (inbyte == '1')
-    {
-      digitalWrite(led, HIGH); //LED on
-      //voltageValue[0] = 1;
-    }
+   
   }//fin (Serial.available() > 0){
 }//fin loop()
 
@@ -143,9 +147,6 @@ void loop() {
 
 
 // funciones //
-
-
-
 
 uint16_t saveRecordedData(boolean isrecord) {
   uint16_t written = 0;
@@ -166,7 +167,9 @@ uint16_t saveRecordedData(boolean isrecord) {
         recording_buffer[addr+1] = t;
       }
       if (! recording.write(recording_buffer, RECBUFFSIZE)) {
-            Serial.print("Couldn't write "); Serial.println(RECBUFFSIZE); 
+            //Serial.print("Couldn't write "); Serial.println(RECBUFFSIZE); 
+            voltageValue[1] = "No se pudo escribir ";
+            sendAndroidValues();                    // ****No se pudo escribir***** //
             while (1);
       }
     }
@@ -178,7 +181,8 @@ uint16_t saveRecordedData(boolean isrecord) {
   
   wordswaiting = musicPlayer.recordedWordsWaiting();
   if (!isrecord) {
-    Serial.print(wordswaiting); Serial.println(" remaining");
+    //Serial.print(wordswaiting); Serial.println(" remaining");
+    voltageValue[1] = "remaining";
     // wrapping up the recording!
     uint16_t addr = 0;
     for (int x=0; x < wordswaiting-1; x++) {
@@ -188,7 +192,8 @@ uint16_t saveRecordedData(boolean isrecord) {
       recording_buffer[addr+1] = t;
       if (addr > RECBUFFSIZE) {
           if (! recording.write(recording_buffer, RECBUFFSIZE)) {
-                Serial.println("Couldn't write!");
+                //Serial.println("Couldn't write!");
+                voltageValue[1] = "Couldn't write!";
                 while (1);
           }
           recording.flush();
@@ -197,7 +202,9 @@ uint16_t saveRecordedData(boolean isrecord) {
     }
     if (addr != 0) {
       if (!recording.write(recording_buffer, addr)) {
-        Serial.println("Couldn't write!"); while (1);
+        //Serial.println("Couldn't write!"); 
+        voltageValue[1] = "Couldn't write!";
+        while (1);
       }
       written += addr;
     }
