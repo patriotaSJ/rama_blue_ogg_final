@@ -48,7 +48,6 @@ void setup() {
     while (1);  // don't do anything more
   }
   voltageValue[1]="SD OK!";
-  
   // Set volume for left, right channels. lower numbers == louder volume!
   musicPlayer.setVolume(10,10);
   
@@ -61,7 +60,9 @@ void setup() {
      voltageValue[1]="No se pudo cargar la imagen v44k1q05,img";
      while (1);    
   }
-  sendAndroidValues();                    // ***** SD OK! or no se pudo cargar la imagen v44k1q05**** //
+  sendAndroidValues();                    // ***** SD OK! or no se pudo cargar la imagen v44k1q05**** // 
+  //si no se ve el SD OK! en el android, es porque el msj ya se envio, y yo me conecte después.
+  //para poder ver el OK! me conecto al bluetooth reinicio el android y dice SD OK o adafruit test
 }
 
 uint8_t isRecording = false;
@@ -86,11 +87,13 @@ void loop() {
     if (inbyte == '1'){
       digitalWrite(led, HIGH); //LED on
       voltageValue[0] = "1";
+      sendAndroidValues();        //para que la app diga encendido
     }
     
     if (inbyte == '2'){
       digitalWrite(led, LOW); //LED off
       voltageValue[0] = "0";
+      sendAndroidValues();        //para que la app diga apagado
     }
     
     
