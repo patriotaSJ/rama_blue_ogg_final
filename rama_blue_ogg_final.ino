@@ -25,7 +25,6 @@ uint8_t recording_buffer[RECBUFFSIZE];
 
 void setup() {
   Serial.begin(9600);
-  //Serial.println("Adafruit VS1053 Ogg Recording Test");
   voltageValue[1]="Adafruit VS1053 Ogg Recording Test";
   sendAndroidValues();                      // *****Adafruit VS1053 Ogg Recording Test**** //
   
@@ -100,8 +99,8 @@ void loop() {
     if (inbyte == '3'){
       if (!isRecording) {
         //Serial.println("Begin recording");
-        voltageValue[1] = "Comienzo de grabación";
-        sendAndroidValues();                    // ***** comienzo de grabación **** //
+        //voltageValue[1] = "Comienzo de grabación";
+        //sendAndroidValues();                    // ***** comienzo de grabación **** //
         isRecording = true;
         
         // Check if the file exists already
@@ -116,6 +115,9 @@ void loop() {
           }
         }
         //Serial.print("Recording to "); Serial.println(filename);
+        String aux = (String)filename;                //tiene un casteo de mas
+        voltageValue[1] = "Grabando " + aux;
+        sendAndroidValues();    
         recording = SD.open(filename, FILE_WRITE);
         if (! recording) {
            voltageValue[1] = "No se pudo abrir la sdcard. Error3";
@@ -185,7 +187,9 @@ uint16_t saveRecordedData(boolean isrecord) {
   wordswaiting = musicPlayer.recordedWordsWaiting();
   if (!isrecord) {
     //Serial.print(wordswaiting); Serial.println(" remaining");
-    voltageValue[1] = "remaining";
+    //String aux2 = (String) wordswaiting;
+    //voltageValue[1] = "Fin de grabacion: " + aux2 + "milisegundos";
+    //sendAndroidValues();                            //cuanto ramining
     // wrapping up the recording!
     uint16_t addr = 0;
     for (int x=0; x < wordswaiting-1; x++) {
@@ -195,8 +199,8 @@ uint16_t saveRecordedData(boolean isrecord) {
       recording_buffer[addr+1] = t;
       if (addr > RECBUFFSIZE) {
           if (! recording.write(recording_buffer, RECBUFFSIZE)) {
-                //Serial.println("Couldn't write!");
                 voltageValue[1] = "Couldn't write!";
+                sendAndroidValues();                            //
                 while (1);
           }
           recording.flush();
@@ -204,9 +208,9 @@ uint16_t saveRecordedData(boolean isrecord) {
       }
     }
     if (addr != 0) {
-      if (!recording.write(recording_buffer, addr)) {
-        //Serial.println("Couldn't write!"); 
+      if (!recording.write(recording_buffer, addr)) { 
         voltageValue[1] = "Couldn't write!";
+        sendAndroidValues();                            //
         while (1);
       }
       written += addr;
