@@ -13,7 +13,7 @@
 
 //ambiente bluetooth
 int led = 4; //led Rojo de prueba de conexiÃ³n
-String voltageValue[4] = {"result_LED","result_vs1053","ressult_dht11_temp","result_almacenameinto_hum"}; 
+String voltageValue[5] = {"result_LED","result_vs1053","ressult_dht11_temp","result_almacenameinto_hum", "almacena"}; 
 char inbyte = 0; //Char para leer el led
 //fin ambiente bluetooth
 
@@ -248,7 +248,7 @@ uint16_t saveRecordedData(boolean isrecord) {
 void sendAndroidValues()
  {
   Serial.print('#'); //hay que poner # para el comienzo de los datos, asÃ­ Android sabe que empieza el String de datos
-  for(int k=0; k<4; k++)
+  for(int k=0; k<5; k++)
   {
     Serial.print(voltageValue[k]);
     Serial.print('@'); //separamos los datos con el +, asÃ­ no es mÃ¡s fÃ¡cil debuggear la informaciÃ³n que enviamos
@@ -261,4 +261,3 @@ void sendAndroidValues()
 
 //comentarios
 //vie 23/10 inicio de usar el github
-
