@@ -13,9 +13,15 @@
 
 //ambiente bluetooth
 int led = 4; //led Rojo de prueba de conexiÃ³n
-String voltageValue[4] = {"result_LED","result_dht11","result_vs1053","result_almacenameinto"}; 
+String voltageValue[4] = {"result_LED","result_vs1053","result_dht11","result_almacenameinto"}; 
 char inbyte = 0; //Char para leer el led
 //fin ambiente bluetooth
+
+//ambiente dht11
+#include "DHT.h"
+#define DHTPIN 7
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
 
 Adafruit_VS1053_FilePlayer musicPlayer = Adafruit_VS1053_FilePlayer(RESET, CS, DCS, DREQ, CARDCS);
 
@@ -25,6 +31,7 @@ uint8_t recording_buffer[RECBUFFSIZE];
 
 void setup() {
   Serial.begin(9600);
+  dht.begin(); 
   voltageValue[1]="Adafruit VS1053 Ogg Recording Test";
   sendAndroidValues();                      // *****Adafruit VS1053 Ogg Recording Test**** //
   
@@ -73,11 +80,9 @@ void loop() {
 
  if (isRecording)
         saveRecordedData(isRecording);
-  
+
   //bluetooth
   //when serial values have been received this will be true
-    
-    
   
   if (Serial.available() > 0){
     inbyte = Serial.read();
@@ -129,7 +134,7 @@ void loop() {
     } //fin if (inbyte == '3'){
     
      if (inbyte == '4'){
-      if (isRecording) {
+      if (isRecording) {                // FIN DEL GRABACIÓN
         voltageValue[1] = "Fin de grabación";
         sendAndroidValues();                    // ****End recording***** //
         
@@ -142,7 +147,11 @@ void loop() {
         delay(1000);
       }
     }//fin   if (inbyte == '4'){
-    
+
+    if(inbyte == '5'){
+      
+      
+    }//fin if(inbyte == '5')
    
   }//fin (Serial.available() > 0){
 }//fin loop()
