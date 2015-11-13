@@ -13,7 +13,7 @@
 
 //ambiente bluetooth
 int led = 4; //led Rojo de prueba de conexiÃ³n
-String voltageValue[4] = {"result_LED","result_vs1053","result_dht11","result_almacenameinto"}; 
+String voltageValue[4] = {"result_LED","result_vs1053","ressult_dht11_temp","result_almacenameinto_hum"}; 
 char inbyte = 0; //Char para leer el led
 //fin ambiente bluetooth
 
@@ -22,6 +22,8 @@ char inbyte = 0; //Char para leer el led
 #define DHTPIN 7
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
+int humedad = 0;
+int temperatura = 0;
 
 Adafruit_VS1053_FilePlayer musicPlayer = Adafruit_VS1053_FilePlayer(RESET, CS, DCS, DREQ, CARDCS);
 
@@ -33,6 +35,10 @@ void setup() {
   Serial.begin(9600);
   dht.begin(); 
   voltageValue[1]="Adafruit VS1053 Ogg Recording Test";
+  humedad = dht.readHumidity();// Lee la humedad
+  temperatura= dht.readTemperature();//Lee la temperatura
+  voltageValue[2] = String(humedad);
+  voltageValue[3] = String(temperatura);
   sendAndroidValues();                      // *****Adafruit VS1053 Ogg Recording Test**** //
   
   pinMode(led, OUTPUT);   //bluetooth
@@ -66,6 +72,7 @@ void setup() {
      voltageValue[1]="No se pudo cargar la imagen v44k1q05,img";
      while (1);    
   }
+  
   sendAndroidValues();                    // ***** SD OK! or no se pudo cargar la imagen v44k1q05**** // 
   //si no se ve el SD OK! en el android, es porque el msj ya se envio, y yo me conecte después.
   //para poder ver el OK! me conecto al bluetooth reinicio el android y dice SD OK o adafruit test
@@ -91,6 +98,8 @@ void loop() {
     if (inbyte == '1'){
       digitalWrite(led, HIGH); //LED on
       voltageValue[0] = "1";
+      voltageValue[2] = String(humedad);
+      voltageValue[3] = String(temperatura);
       sendAndroidValues();        //para que la app diga encendido
     }
     
