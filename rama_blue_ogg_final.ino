@@ -104,22 +104,22 @@ void loop() {
     inbyte = Serial.read();
     //Serial.println(inbyte);
 
-    if (inbyte == '1'){
-      digitalWrite(led, HIGH); //LED on
+    if (inbyte == '1'){   //LED ON
+      digitalWrite(led, HIGH); 
       voltageValue[0] = "1";
       voltageValue[2] = String(humedad);
       voltageValue[3] = String(temperatura);
       sendAndroidValues();        //para que la app diga encendido
     }
     
-    if (inbyte == '2'){
-      digitalWrite(led, LOW); //LED off
+    if (inbyte == '2'){   //LED off
+      digitalWrite(led, LOW); 
       voltageValue[0] = "0";
       sendAndroidValues();        //para que la app diga apagado
     }
     
     
-    if (inbyte == '3'){
+    if (inbyte == '3'){    //GRABAR VS1053
       if (!isRecording) {
         //Serial.println("Begin recording");
         //voltageValue[1] = "Comienzo de grabación";
@@ -150,9 +150,18 @@ void loop() {
         musicPlayer.startRecordOgg(true); // use microphone (for linein, pass in 'false')
       }
     } //fin if (inbyte == '3'){
+
+    if(inbyte == '4'){      //GRABAR DHT11
+      temperatura = dht.readTemperature();
+      humedad= dht.readHumidity();
+      grabarMiObjeto(temperatura, humedad);
+    }
+
+    if(inbyte == '5'){      //GRABAR DHT11 y VS1053
     
-     if (inbyte == '4'){
-      if (isRecording) {                // FIN DEL GRABACIÓN
+    }
+     if (inbyte == '9'){    //NO GRABAR NADAAAAAAAAAAA
+      if (isRecording) {                
         voltageValue[1] = "Fin de grabación";
         sendAndroidValues();                    // ****End recording***** //
         
@@ -166,7 +175,7 @@ void loop() {
       }
     }//fin   if (inbyte == '4'){
 
-    if(inbyte == '5'){
+    if(inbyte == '5'){  // GRABAR DHT11
       
       
     }//fin if(inbyte == '5')
@@ -277,4 +286,3 @@ void grabarMiObjeto(int x, int y){
     eeAddress = 0;
   voltageValue[4]= String(eeAddress);
 }
-
