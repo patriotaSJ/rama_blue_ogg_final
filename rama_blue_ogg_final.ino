@@ -25,6 +25,15 @@ DHT dht(DHTPIN, DHTTYPE);
 int humedad = 0;
 int temperatura = 0;
 
+//ambiente de EEPROM
+#include <EEPROM.h>
+int eeAddress = 0;
+struct MiObjeto{
+  int temp; //tamaño 2 byte
+  int hum;    //tamaño 2 byte
+};
+MiObjeto customVar = {0,0};
+
 Adafruit_VS1053_FilePlayer musicPlayer = Adafruit_VS1053_FilePlayer(RESET, CS, DCS, DREQ, CARDCS);
 
 File recording;  // the file we will save our recording to
@@ -68,7 +77,7 @@ void setup() {
   digitalWrite(REC_BUTTON, HIGH);
   
   // load plugin from SD card! We'll use mono 44.1KHz, high quality
-  if (! musicPlayer.prepareRecordOgg("v44k1q05.img")) {
+  if (!musicPlayer.prepareRecordOgg("v44k1q05.img")) {
      voltageValue[1]="No se pudo cargar la imagen v44k1q05,img";
      while (1);    
   }
@@ -257,7 +266,15 @@ void sendAndroidValues()
  Serial.println();
  delay(10);        //agregamos este delay para eliminar tramisiones faltantes
 }
-//----------------- fin bluetooth -------------------//
 
-//comentarios
-//vie 23/10 inicio de usar el github
+//----------------- fin bluetooth -------------------//
+void grabarMiObjeto(int x, int y){
+  customVar.temp = x;
+  customVar.hum = y;
+  EEPROM.put(eeAddress, customVar); 
+  eeAddress += sizeof(customVar);
+  if(eeAddress >= EEPROM.length()) //para salvar el desbordameinto
+    eeAddress = 0;
+  voltageValue[4]= String(eeAddress);
+}
+
