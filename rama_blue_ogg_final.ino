@@ -25,9 +25,9 @@ DHT dht(DHTPIN, DHTTYPE);
 int humedad = 0;
 int temperatura = 0;
 
-//ambiente de EEPROM
+//ambiente de EEPROM  //ahora debo guardar la primer dirección, para saber cuantos struct tengo almacenados sino siempre se sobreescriben
 #include <EEPROM.h>
-int eeAddress = 0;
+int eeAddress;
 struct MiObjeto{
   int temp; //tamaño 2 byte
   int hum;    //tamaño 2 byte
@@ -39,6 +39,7 @@ Adafruit_VS1053_FilePlayer musicPlayer = Adafruit_VS1053_FilePlayer(RESET, CS, D
 File recording;  // the file we will save our recording to
 #define RECBUFFSIZE 128  // 64 or 128 bytes.
 uint8_t recording_buffer[RECBUFFSIZE];
+uint8_t isRecording = false;
 
 void setup() {
   Serial.begin(9600);
@@ -48,6 +49,12 @@ void setup() {
   temperatura= dht.readTemperature();//Lee la temperatura
   voltageValue[2] = String(humedad);
   voltageValue[3] = String(temperatura);
+
+  
+  /************      SERLIALIZACIÓN DHT11         *******************/
+  //eeAddress = 1;              //SERIALIZACIÓN
+  eeAddress = EEPROM.read(0); //dirección=0 // Siendo que ya este SERIALIZADO la dirección0=0
+  
   sendAndroidValues();                      // *****Adafruit VS1053 Ogg Recording Test**** //
   
   pinMode(led, OUTPUT);   //bluetooth
@@ -87,8 +94,6 @@ void setup() {
   //para poder ver el OK! me conecto al bluetooth reinicio el android y dice SD OK o adafruit test
 }
 
-uint8_t isRecording = false;
-
 
 
 
@@ -120,7 +125,54 @@ void loop() {
     
     
     if (inbyte == '3'){    //GRABAR VS1053
-      if (!isRecording) {
+      grabarVS1053();
+    } 
+
+    if (inbyte == '4'){      //GRABAR DHT11
+      grabarMiObjeto();
+    }
+
+    if (inbyte == '5'){      //GRABAR DHT11 y VS1053
+      grabarMiObjeto();
+      grabarVS1053();
+    }
+    if (inbyte == '9'){    //NO GRABAR NADAAAAAAAAAAA
+      if (isRecording) {                
+        voltageValue[1] = "Fin de grabación";
+        sendAndroidValues();                    // ****End recording***** //
+        
+        musicPlayer.stopRecordOgg();
+        isRecording = false;
+        // flush all the data!
+        saveRecordedData(isRecording);
+        // close it up
+        recording.close();
+        delay(1000);
+      }
+    }//fin   if (inbyte == '4'){
+   
+  }//fin (Serial.available() > 0){
+}//fin loop()
+
+
+
+
+
+// funciones dht11 //
+void grabarMiObjeto(){
+  customVar.temp = dht.readTemperature();
+  customVar.hum = dht.readHumidity();
+  EEPROM.put(eeAddress, customVar); 
+  eeAddress += sizeof(customVar);
+  if(eeAddress >= EEPROM.length()) //para salvar el desbordameinto
+    eeAddress = 0;
+  voltageValue[4]= String(eeAddress);  //le envio la dirección para poder rellenar el progressBar (Android)
+  EEPROM.write(0, eeAddress);
+}
+
+
+void grabarVS1053(){
+  if (!isRecording) {
         //Serial.println("Begin recording");
         //voltageValue[1] = "Comienzo de grabación";
         //sendAndroidValues();                    // ***** comienzo de grabación **** //
@@ -149,46 +201,10 @@ void loop() {
         }
         musicPlayer.startRecordOgg(true); // use microphone (for linein, pass in 'false')
       }
-    } //fin if (inbyte == '3'){
-
-    if(inbyte == '4'){      //GRABAR DHT11
-      temperatura = dht.readTemperature();
-      humedad= dht.readHumidity();
-      grabarMiObjeto(temperatura, humedad);
-    }
-
-    if(inbyte == '5'){      //GRABAR DHT11 y VS1053
-    
-    }
-     if (inbyte == '9'){    //NO GRABAR NADAAAAAAAAAAA
-      if (isRecording) {                
-        voltageValue[1] = "Fin de grabación";
-        sendAndroidValues();                    // ****End recording***** //
-        
-        musicPlayer.stopRecordOgg();
-        isRecording = false;
-        // flush all the data!
-        saveRecordedData(isRecording);
-        // close it up
-        recording.close();
-        delay(1000);
-      }
-    }//fin   if (inbyte == '4'){
-
-    if(inbyte == '5'){  // GRABAR DHT11
-      
-      
-    }//fin if(inbyte == '5')
-   
-  }//fin (Serial.available() > 0){
-}//fin loop()
+}
 
 
-
-
-
-// funciones //
-
+// funciones vs1053 //
 uint16_t saveRecordedData(boolean isrecord) {
   uint16_t written = 0;
   
@@ -262,7 +278,8 @@ uint16_t saveRecordedData(boolean isrecord) {
   return written;
 }
 
-//enviar valores del celular al arduino
+//funciones para
+//enviar valores del arduino al android
 void sendAndroidValues()
  {
   Serial.print('#'); //hay que poner # para el comienzo de los datos, asÃ­ Android sabe que empieza el String de datos
@@ -277,12 +294,4 @@ void sendAndroidValues()
 }
 
 //----------------- fin bluetooth -------------------//
-void grabarMiObjeto(int x, int y){
-  customVar.temp = x;
-  customVar.hum = y;
-  EEPROM.put(eeAddress, customVar); 
-  eeAddress += sizeof(customVar);
-  if(eeAddress >= EEPROM.length()) //para salvar el desbordameinto
-    eeAddress = 0;
-  voltageValue[4]= String(eeAddress);
-}
+//terminar de revisar 
