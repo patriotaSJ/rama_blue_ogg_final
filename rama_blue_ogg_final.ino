@@ -40,6 +40,7 @@ File recording;  // the file we will save our recording to
 #define RECBUFFSIZE 128  // 64 or 128 bytes.
 uint8_t recording_buffer[RECBUFFSIZE];
 uint8_t isRecording = false;
+String auxFilename = "";
 
 void setup() {
   Serial.begin(9600);
@@ -142,7 +143,7 @@ void loop() {
     }
     if (inbyte == '9'){    //NO GRABAR NADAAAAAAAAAAA
       if (isRecording) {                
-        voltageValue[1] = "Fin de grabación";
+        voltageValue[1] = "Fin " + auxFilename;
         sendAndroidValues();                    // ****End recording***** //
         
         musicPlayer.stopRecordOgg();
@@ -196,8 +197,8 @@ void grabarVS1053(){
           }
         }
         //Serial.print("Recording to "); Serial.println(filename);
-        String aux = (String)filename;                //tiene un casteo de mas
-        voltageValue[1] = "Grabando " + aux;
+        auxFilename = (String)filename;                //tiene un casteo de mas
+        voltageValue[1] = "Comienzo " + auxFilename;        
         sendAndroidValues();    
         recording = SD.open(filename, FILE_WRITE);
         if (! recording) {
