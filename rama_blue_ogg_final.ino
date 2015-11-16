@@ -45,16 +45,16 @@ void setup() {
   Serial.begin(9600);
   dht.begin(); 
   voltageValue[1]="Adafruit VS1053 Ogg Recording Test";
-  humedad = dht.readHumidity();// Lee la humedad
   temperatura= dht.readTemperature();//Lee la temperatura
-  voltageValue[2] = String(humedad);
-  voltageValue[3] = String(temperatura);
+  humedad = dht.readHumidity();// Lee la humedad
+  voltageValue[2] = String(temperatura);
+  voltageValue[3] = String(humedad);
 
   
   /************      SERLIALIZACIÓN DHT11         *******************/
   //eeAddress = 1;              //SERIALIZACIÓN
   eeAddress = EEPROM.read(0); //dirección=0 // Siendo que ya este SERIALIZADO la dirección0=0
-  
+  voltageValue[4] = String(eeAddress);
   sendAndroidValues();                      // *****Adafruit VS1053 Ogg Recording Test**** //
   
   pinMode(led, OUTPUT);   //bluetooth
@@ -112,8 +112,9 @@ void loop() {
     if (inbyte == '1'){   //LED ON
       digitalWrite(led, HIGH); 
       voltageValue[0] = "1";
-      voltageValue[2] = String(humedad);
-      voltageValue[3] = String(temperatura);
+      voltageValue[2] = String(temperatura);
+      voltageValue[3] = String(humedad);
+      voltageValue[4] = String(eeAddress);
       sendAndroidValues();        //para que la app diga encendido
     }
     
@@ -126,15 +127,18 @@ void loop() {
     
     if (inbyte == '3'){    //GRABAR VS1053
       grabarVS1053();
+      sendAndroidValues();
     } 
 
     if (inbyte == '4'){      //GRABAR DHT11
       grabarMiObjeto();
+      sendAndroidValues();
     }
 
     if (inbyte == '5'){      //GRABAR DHT11 y VS1053
       grabarMiObjeto();
       grabarVS1053();
+      sendAndroidValues();
     }
     if (inbyte == '9'){    //NO GRABAR NADAAAAAAAAAAA
       if (isRecording) {                
@@ -152,6 +156,7 @@ void loop() {
     }//fin   if (inbyte == '4'){
    
   }//fin (Serial.available() > 0){
+  
 }//fin loop()
 
 
@@ -168,6 +173,7 @@ void grabarMiObjeto(){
     eeAddress = 0;
   voltageValue[4]= String(eeAddress);  //le envio la dirección para poder rellenar el progressBar (Android)
   EEPROM.write(0, eeAddress);
+  
 }
 
 
