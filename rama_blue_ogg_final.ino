@@ -4,22 +4,22 @@
 #include <SD.h>
 
 // define the pins used
-#define RESET 9      // VS1053 reset pin (output) 
-#define CS 10        // VS1053 chip select pin (output)
-#define DCS 8        // VS1053 Data/command select pin (output)
-#define CARDCS A0     // Card chip select pin
-#define DREQ A1       // VS1053 Data request, ideally an Interrupt pin
-#define REC_BUTTON 7
+#define RESET 47      // VS1053 reset pin (output)  //7
+#define CS 45        // VS1053 chip select pin (output) //6
+#define DCS 43        // VS1053 Data/command select pin (output) //37
+#define CARDCS A0     // Card chip select pin //SDCS //A0
+#define DREQ A1       // VS1053 Data request, ideally an Interrupt pin //A1
+#define REC_BUTTON 50  //50
 
 //ambiente bluetooth
-int led = 4; //led Rojo de prueba de conexiÃ³n
+int led = 12; //led Rojo de prueba de conexiÃ³n
 String voltageValue[5] = {"result_LED","result_vs1053","ressult_dht11_temp","result_almacenameinto_hum", "almacena"}; 
 char inbyte = 0; //Char para leer el led
 //fin ambiente bluetooth
 
 //ambiente dht11
 #include "DHT.h"
-#define DHTPIN 7
+#define DHTPIN 13
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 int humedad = 0;
@@ -44,6 +44,7 @@ String auxFilename = "";
 
 void setup() {
   Serial.begin(9600);
+  Serial1.begin(9600);
   dht.begin(); 
   voltageValue[1]="Adafruit VS1053 Ogg Recording Test";
   temperatura= dht.readTemperature();//Lee la temperatura
@@ -106,8 +107,8 @@ void loop() {
   //bluetooth
   //when serial values have been received this will be true
   
-  if (Serial.available() > 0){
-    inbyte = Serial.read();
+  if (Serial1.available() > 0){
+    inbyte = Serial1.read();
     //Serial.println(inbyte);
 
     if (inbyte == '1'){   //LED ON
@@ -289,14 +290,14 @@ uint16_t saveRecordedData(boolean isrecord) {
 //enviar valores del arduino al android
 void sendAndroidValues()
  {
-  Serial.print('#'); //hay que poner # para el comienzo de los datos, asÃ­ Android sabe que empieza el String de datos
+  Serial1.print('#'); //hay que poner # para el comienzo de los datos, asÃ­ Android sabe que empieza el String de datos
   for(int k=0; k<5; k++)
   {
-    Serial.print(voltageValue[k]);
-    Serial.print('@'); //separamos los datos con el +, asÃ­ no es mÃ¡s fÃ¡cil debuggear la informaciÃ³n que enviamos
+    Serial1.print(voltageValue[k]);
+    Serial1.print('@'); //separamos los datos con el +, asÃ­ no es mÃ¡s fÃ¡cil debuggear la informaciÃ³n que enviamos
   }
- Serial.print('~'); //con esto damos a conocer la finalizaciÃ³n del String de datos
- Serial.println();
+ Serial1.print('~'); //con esto damos a conocer la finalizaciÃ³n del String de datos
+ Serial1.println();
  delay(10);        //agregamos este delay para eliminar tramisiones faltantes
 }
 
